@@ -51,7 +51,7 @@ def im2col(input_data, filter_h, filter_w, stride=1, pad=0):
     -------
     col : 2차원 배열
     """
-    N, C, H, W = input_data.shape
+    N, C, H, W = input_data.shape # N(data 수), C(채널), H(높이), W(너비)
     out_h = (H + 2*pad - filter_h)//stride + 1
     out_w = (W + 2*pad - filter_w)//stride + 1
 
