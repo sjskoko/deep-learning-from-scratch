@@ -1,31 +1,47 @@
+import imp
 import sys, os
+from common.layers import Convolution
 sys.path.append(os.pardir)
 from common.util import im2col
 import numpy as np
+from common.layers import Convolution as Conv
 
-class Convolution:
-    def __init__(self, W, b, stride=1, pad=0) -> None:
-        self.W = W # filter
-        self.b = b # bias
-        self.stride = stride # stride
-        self.pad = pad #padding
+# conv layer 이해
+x1 = np.arange(294).reshape(2, 3, 7, 7)
+col1 = im2col(x1, 5, 5)
+col1.shape
 
-    def forward(self, x):
-        FN, C, FH, FW = self.W.shape
-        N, C, H, W = x.shape
-        out_h = int(1 + (H + 2*self.pad - FH) / self.stride)
-        out_w = int(1 + (W + 2*self.pad - FW) / self.stride)
+filter = np.arange(300).reshape(4, 3, 5, 5)
+bias = np.zeros(10).reshape(10, 1, 1)
 
-        col = im2col(x, FH, FW, self.stride, self.pad)
-        col_W = self.W.reshape(FN, -1).T
-        out = np.dot(col, col_W) + self.b
-        out = out.reshape(N, out_h, out_w, -1).transpose(0, 3, 1, 2)
+col_w = filter.reshape(4, -1).T
+for i in range(75):
+    for j in range(4):
+        if i%4 == j:
+            col_w[i, j] = 1
+        else:
+            col_w[i, j] = 0
 
-x= np.arange(147).reshape(1, 3, 7, 7)
+out = np.dot(col1, col_w)
+out.shape
+out = out.reshape(2, 3, 3, -1)
 
-col = im2col(x, 2, 2)
-c0l = col.reshape(-1, 4)
+# pooling layer 이해
+pool_h = 5
+pool_w = 5
+H = 7
+W = 7
+N = 2
+C = 3
+out_h = (H-pool_h) +1
+out_w = (W-pool_w) +1
 
 
+x1 = np.arange(N*C*H*W).reshape(N, C, H, W)
+col1 = im2col(x1, pool_h, pool_w) # (N*out_h*out_w, C*poo_h*pool_w)
+col1 = col1.reshape(-1, pool_h*pool_w) # (N*out_h*out_w*C, poo_h*pool_w) # channel 만 변경
+col1.shape
 
-class Pooling:
+out = np.max(col1, axis=1)
+
+out = out.reshape(N, out_h, out_w, C).transpose(0, 3, 1, 2) 
